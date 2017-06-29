@@ -125,7 +125,7 @@ function spread(arr) {
 	return result;
 }
 
-export function DOMElement(name, owner) {
+function DOMElement(name, owner) {
 	this.nodeType = 1;
 	this.nodeName = name;
 	this.tagName = name;
@@ -199,14 +199,14 @@ export function DOMElement(name, owner) {
 	this.querySelectorAll = selector => {
 		return spread(this.children.filter(tag => matchesSelector(tag, selector)).concat(this.children.map(tag => tag.querySelectorAll(selector))));
 	};
-};
+}
 
-export function DOMText(content, owner) {
+function DOMText(content, owner) {
 	this.nodeValue = content;
 	this.nodeType = 3;
 	this.parentNode = null;
 	this.ownerDocument = owner;
-};
+}
 
 export default function Document(html) {
 	if (!this instanceof Document) {
@@ -245,3 +245,7 @@ export default function Document(html) {
 		this.body = this.getElementsByTagName('body')[0];
 	}
 }
+
+module.exports = Document;
+module.exports.DOMElement = DOMElement;
+module.exports.DOMText = DOMText;

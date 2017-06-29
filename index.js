@@ -2,17 +2,19 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
-const selfClosing = ['input', 'link', 'meta', 'hr', 'br', 'source', 'img'];
+var selfClosing = ['input', 'link', 'meta', 'hr', 'br', 'source', 'img'];
 
 function without(arr, element, attr) {
-	let idx = arr.findIndex(node => attr ? node[attr] === element : node === element);
+	var idx = arr.findIndex(function (node) {
+		return attr ? node[attr] === element : node === element;
+	});
 	arr.splice(idx, 1);
 	return arr;
 }
 
 function parseAttributes(node, attributes) {
-	let attributeRegExp = /\s+([\w:_-]+)(?:\s*=\s*(?:'([^']+)'|"([^"]+)"))?/g;
-	let match;
+	var attributeRegExp = /\s+([\w:_-]+)(?:\s*=\s*(?:'([^']+)'|"([^"]+)"))?/g;
+	var match = void 0;
 
 	while (match = attributeRegExp.exec(attributes)) {
 		node.setAttribute(match[1], match[2] || match[3]);
@@ -23,11 +25,11 @@ function parseAttributes(node, attributes) {
 		}
 	}
 }
-let position = -1;
+var position = -1;
 
 function parse(document, html, parentNode) {
-	let tagRegExp = /<(\/)?([\w:_-]+)(\s+(?:[^\/>]|\/[^>])+)?(\/)?>/g;
-	let match;
+	var tagRegExp = /<(\/)?([\w:_-]+)(\s+(?:[^\/>]|\/[^>])+)?(\/)?>/g;
+	var match = void 0;
 
 	if (!html.match(tagRegExp)) {
 		parentNode.appendChild(document.createTextNode(html));
@@ -36,7 +38,7 @@ function parse(document, html, parentNode) {
 		if (position > match.index) continue;
 		if (match[1]) {
 			// closing tag
-			let content = html.substring(position, match.index);
+			var content = html.substring(position, match.index);
 			if (content) {
 				parentNode.appendChild(document.createTextNode(content));
 			}
@@ -44,11 +46,11 @@ function parse(document, html, parentNode) {
 			return;
 		} else {
 			// opening tag
-			let content = html.substring(position, match.index);
-			if (content) {
-				parentNode.appendChild(document.createTextNode(content));
+			var _content = html.substring(position, match.index);
+			if (_content) {
+				parentNode.appendChild(document.createTextNode(_content));
 			}
-			let node = document.createElement(match[2]);
+			var node = document.createElement(match[2]);
 			parseAttributes(node, match[3]);
 			position = match.index + match[0].length;
 			if (!match[4]) {
@@ -60,11 +62,11 @@ function parse(document, html, parentNode) {
 }
 
 // helpers
-const regExp = function (name) {
+var regExp = function regExp(name) {
 	return new RegExp('(^| )' + name + '( |$)');
 };
-const forEach = function (list, fn, scope) {
-	for (let i = 0; i < list.length; i++) {
+var forEach = function forEach(list, fn, scope) {
+	for (var i = 0; i < list.length; i++) {
 		fn.call(scope, list[i]);
 	}
 };
@@ -75,40 +77,40 @@ function ClassList(element) {
 }
 
 ClassList.prototype = {
-	add: function () {
+	add: function add() {
 		forEach(arguments, function (name) {
 			if (!this.contains(name)) {
 				this.element.className += this.element.className.length > 0 ? ' ' + name : name;
 			}
 		}, this);
 	},
-	remove: function () {
+	remove: function remove() {
 		forEach(arguments, function (name) {
 			this.element.className = this.element.className.replace(regExp(name), '');
 		}, this);
 	},
-	toggle: function (name) {
+	toggle: function toggle(name) {
 		return this.contains(name) ? (this.remove(name), false) : (this.add(name), true);
 	},
-	contains: function (name) {
+	contains: function contains(name) {
 		return regExp(name).test(this.element.className);
 	},
 	// bonus..
-	replace: function (oldName, newName) {
+	replace: function replace(oldName, newName) {
 		this.remove(oldName), this.add(newName);
 	}
 };
 
 function matchesSelector(tag, selector) {
-	let selectors = selector.split(/\s*,\s*/),
-	    match;
-	for (let all in selectors) {
+	var selectors = selector.split(/\s*,\s*/),
+	    match = void 0;
+	for (var all in selectors) {
 		if (match = selectors[all].match(/(?:([\w*:_-]+)?\[([\w:_-]+)(?:(\$|\^|\*)?=(?:(?:'([^']*)')|(?:"([^"]*)")))?\])|(?:\.([\w_-]+))|([\w*:_-]+)/g)) {
-			let value = RegExp.$4 || RegExp.$5;
+			var value = RegExp.$4 || RegExp.$5;
 			if (RegExp.$7 === tag.tagName || RegExp.$7 === '*') return true;
 			if (RegExp.$6 && tag.classList.contains(RegExp.$6)) return true;
 			if (RegExp.$1 && tag.tagName !== RegExp.$1) continue;
-			let attribute = tag.getAttribute(RegExp.$2);
+			var attribute = tag.getAttribute(RegExp.$2);
 			if (!RegExp.$3 && !value && typeof tag.attributes[RegExp.$2] !== 'undefined') return true;
 			if (!RegExp.$3 && value && attribute === value) return true;
 			if (RegExp.$3 && RegExp.$3 === '^' && attribute.indexOf(value) === 0) return true;
@@ -120,14 +122,16 @@ function matchesSelector(tag, selector) {
 }
 
 function spread(arr) {
-	let result = [];
-	arr.forEach(entry => {
+	var result = [];
+	arr.forEach(function (entry) {
 		result = result.concat(entry);
 	});
 	return result;
 }
 
 function DOMElement(name, owner) {
+	var _this = this;
+
 	this.nodeType = 1;
 	this.nodeName = name;
 	this.tagName = name;
@@ -138,68 +142,94 @@ function DOMElement(name, owner) {
 	this.parentNode = null;
 	this.attributes = [];
 	Object.defineProperty(this, 'children', {
-		get: () => this.childNodes.filter(node => node.nodeType === 1)
+		get: function get() {
+			return _this.childNodes.filter(function (node) {
+				return node.nodeType === 1;
+			});
+		}
 	});
 	Object.defineProperty(this, 'classList', {
-		get: () => new ClassList(this)
+		get: function get() {
+			return new ClassList(_this);
+		}
 	});
 	Object.defineProperty(this, 'innerHTML', {
-		get: () => {
-			return this.childNodes.map(tag => tag.nodeType === 1 ? tag.outerHTML : tag.nodeValue).join('');
+		get: function get() {
+			return _this.childNodes.map(function (tag) {
+				return tag.nodeType === 1 ? tag.outerHTML : tag.nodeValue;
+			}).join('');
 		},
-		set: value => {
+		set: function set(value) {
 			position = -1;
-			this.childNodes = [];
-			parse(owner, value, this);
+			_this.childNodes = [];
+			parse(owner, value, _this);
 		}
 	});
 	Object.defineProperty(this, 'outerHTML', {
-		get: () => {
-			if (Object.prototype.toString.call(this.attributes) !== '[object Array]') {
-				this.attributes = Object.keys(this.attributes).map(entry => ({ name: entry, value: this.attributes[entry] }));
-				this.attributes.forEach((attr, idx, arr) => {
-					this.attributes[attr.name] = attr.value;
+		get: function get() {
+			if (Object.prototype.toString.call(_this.attributes) !== '[object Array]') {
+				_this.attributes = Object.keys(_this.attributes).map(function (entry) {
+					return { name: entry, value: _this.attributes[entry] };
+				});
+				_this.attributes.forEach(function (attr, idx, arr) {
+					_this.attributes[attr.name] = attr.value;
 				});
 			}
-			let attributes = this.attributes.map(attr => `${attr.name}="${typeof attr.value === 'undefined' ? '' : attr.value}"`).join(' ');
-			if (selfClosing.indexOf(this.tagName) >= 0) {
-				return `<${this.tagName}${attributes ? ' ' + attributes : ''}/>`;
+			var attributes = _this.attributes.map(function (attr) {
+				return attr.name + '="' + (typeof attr.value === 'undefined' ? '' : attr.value) + '"';
+			}).join(' ');
+			if (selfClosing.indexOf(_this.tagName) >= 0) {
+				return '<' + _this.tagName + (attributes ? ' ' + attributes : '') + '/>';
 			} else {
-				return `<${this.tagName}${attributes ? ' ' + attributes : ''}>${this.innerHTML}</${this.tagName}>`;
+				return '<' + _this.tagName + (attributes ? ' ' + attributes : '') + '>' + _this.innerHTML + '</' + _this.tagName + '>';
 			}
 		}
 	});
-	this.appendChild = child => {
-		this.childNodes.push(child);
-		child.parentNode = this;
+	this.appendChild = function (child) {
+		_this.childNodes.push(child);
+		child.parentNode = _this;
 	};
-	this.removeChild = child => {
-		without(this.childNodes, child);
+	this.removeChild = function (child) {
+		without(_this.childNodes, child);
 	};
-	this.setAttribute = (name, value) => {
-		this.attributes.push({ name, value });
-		this.attributes[name] = value;
+	this.setAttribute = function (name, value) {
+		_this.attributes.push({ name: name, value: value });
+		_this.attributes[name] = value;
 	};
-	this.removeAttribute = name => {
-		without(this.attributes, name, 'name');
-		delete this.attributes[name];
+	this.removeAttribute = function (name) {
+		without(_this.attributes, name, 'name');
+		delete _this.attributes[name];
 	};
-	this.getAttribute = name => this.attributes[name] || '';
-	this.replaceChild = (newChild, toReplace) => {
-		let idx = this.childNodes.indexOf(toReplace);
-		this.childNodes[idx] = newChild;
-		newChild.parentNode = this;
+	this.getAttribute = function (name) {
+		return _this.attributes[name] || '';
 	};
-	this.addEventListener = () => {};
-	this.removeEventListener = () => {};
-	this.getElementsByTagName = tagName => {
-		return spread(this.children.filter(tag => tag.tagName === tagName).concat(this.children.map(tag => tag.getElementsByTagName(tagName))));
+	this.replaceChild = function (newChild, toReplace) {
+		var idx = _this.childNodes.indexOf(toReplace);
+		_this.childNodes[idx] = newChild;
+		newChild.parentNode = _this;
 	};
-	this.getElementsByClassName = className => {
-		return spread(this.children.filter(tag => tag.classList.contains(className)).concat(this.children.map(tag => tag.getElementsByClassName(className))));
+	this.addEventListener = function () {};
+	this.removeEventListener = function () {};
+	this.getElementsByTagName = function (tagName) {
+		return spread(_this.children.filter(function (tag) {
+			return tag.tagName === tagName;
+		}).concat(_this.children.map(function (tag) {
+			return tag.getElementsByTagName(tagName);
+		})));
 	};
-	this.querySelectorAll = selector => {
-		return spread(this.children.filter(tag => matchesSelector(tag, selector)).concat(this.children.map(tag => tag.querySelectorAll(selector))));
+	this.getElementsByClassName = function (className) {
+		return spread(_this.children.filter(function (tag) {
+			return tag.classList.contains(className);
+		}).concat(_this.children.map(function (tag) {
+			return tag.getElementsByClassName(className);
+		})));
+	};
+	this.querySelectorAll = function (selector) {
+		return spread(_this.children.filter(function (tag) {
+			return matchesSelector(tag, selector);
+		}).concat(_this.children.map(function (tag) {
+			return tag.querySelectorAll(selector);
+		})));
 	};
 }
 
@@ -210,5 +240,68 @@ function DOMText(content, owner) {
 	this.ownerDocument = owner;
 }
 
-exports.DOMElement = DOMElement;
-exports.DOMText = DOMText;
+function Document(html) {
+	var _this2 = this;
+
+	if (!this instanceof Document) {
+		return new Document(html);
+	}
+
+	this.createElement = function (name) {
+		return new DOMElement(name, _this2);
+	};
+	this.createTextNode = function (content) {
+		return new DOMText(content, _this2);
+	};
+	this.getElementsByTagName = function (name) {
+		return spread(_this2.children.filter(function (tag) {
+			return tag.tagName === name;
+		}).concat(_this2.children.map(function (tag) {
+			return tag.getElementsByTagName(name);
+		})));
+	};
+	this.getElementsByClassName = function (className) {
+		return spread(_this2.children.filter(function (tag) {
+			return tag.classList.contains(className);
+		}).concat(_this2.children.map(function (tag) {
+			return tag.getElementsByClassName(className);
+		})));
+	};
+	this.querySelectorAll = function (selector) {
+		return spread(_this2.children.filter(function (tag) {
+			return matchesSelector(tag, selector);
+		}).concat(_this2.children.map(function (tag) {
+			return tag.querySelectorAll(selector);
+		})));
+	};
+	this.addEventListener = function () {};
+	this.removeEventListener = function () {};
+
+	this.documentElement = this.createElement('html');
+	this.childNodes = [this.documentElement];
+	this.children = [this.documentElement];
+	this.nodeType = 9;
+	position = -1;
+
+	if (html.trim().indexOf('<!DOCTYPE') < 0) {
+		this.head = this.createElement('head');
+		this.body = this.createElement('body');
+		this.documentElement.appendChild(this.head);
+		this.documentElement.appendChild(this.body);
+		parse(this, html, this.body);
+	} else {
+		html.match(/<html([^>]*)>/);
+		if (RegExp.$1) {
+			parseAttributes(this.documentElement, RegExp.$1);
+		}
+		html = html.replace(/<!DOCTYPE[^>]+>[\n\s]*<html([^>]*)>/g, '').replace(/<\/html>/g, '');
+
+		parse(this, html, this.documentElement);
+		this.head = this.getElementsByTagName('head')[0];
+		this.body = this.getElementsByTagName('body')[0];
+	}
+}
+
+module.exports = Document;
+module.exports.DOMElement = DOMElement;
+module.exports.DOMText = DOMText;
