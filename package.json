@@ -1,0 +1,21 @@
+{
+  "name": "micro-dom",
+  "version": "0.0.1",
+  "description": "A minimal DOM-like implementation",
+  "main": "index.js",
+  "author": "Robert Kunze <quixotic.worx@protonmail.com>",
+  "license": "MIT",
+  "scripts": {
+    "install": "rollup -c -i src/dom.js -o index.js",
+    "test": "rollup -c | node"
+  },
+  "dependencies": {
+    "babel-plugin-external-helpers": "^6.22.0",
+    "babel-preset-latest": "^6.24.1",
+    "colors": "^1.1.2",
+    "rollup": "^0.43.0",
+    "rollup-plugin-babel": "^2.7.1",
+    "rollup-plugin-multi-entry": "^2.0.1",
+    "rollup-watch": "^4.0.0"
+  }
+}
