@@ -1,7 +1,12 @@
 const selfClosing = ['input', 'link', 'meta', 'hr', 'br', 'source', 'img'];
 
 function without(arr, element, attr) {
-	let idx = arr.findIndex(node => attr ? node[attr] === element : node === element);
+	let idx;
+	arr.forEach((node, index) => {
+		if ((attr && node[attr] === element) || node === element) {
+			idx = index;
+		}
+	});
 	arr.splice(idx, 1);
 	return arr;
 }

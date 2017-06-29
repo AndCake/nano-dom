@@ -5,8 +5,11 @@ Object.defineProperty(exports, '__esModule', { value: true });
 var selfClosing = ['input', 'link', 'meta', 'hr', 'br', 'source', 'img'];
 
 function without(arr, element, attr) {
-	var idx = arr.findIndex(function (node) {
-		return attr ? node[attr] === element : node === element;
+	var idx = void 0;
+	arr.forEach(function (node, index) {
+		if (attr && node[attr] === element || node === element) {
+			idx = index;
+		}
 	});
 	arr.splice(idx, 1);
 	return arr;
