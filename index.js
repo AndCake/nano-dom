@@ -196,15 +196,16 @@ function DOMElement(name, owner) {
 		without(_this.childNodes, child);
 	};
 	this.setAttribute = function (name, value) {
-		_this.attributes.push({ name: name, value: value });
-		_this.attributes[name] = value;
+		var obj = { name: name, value: value };
+		_this.attributes.push(obj);
+		_this.attributes[name] = obj;
 	};
 	this.removeAttribute = function (name) {
 		without(_this.attributes, name, 'name');
 		delete _this.attributes[name];
 	};
 	this.getAttribute = function (name) {
-		return _this.attributes[name] || '';
+		return _this.attributes[name] && _this.attributes[name].value || '';
 	};
 	this.replaceChild = function (newChild, toReplace) {
 		var idx = _this.childNodes.indexOf(toReplace);
