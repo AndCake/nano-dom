@@ -1,12 +1,12 @@
 {
   "name": "nano-dom",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "description": "A minimal DOM-like implementation",
   "main": "index.js",
   "author": "Robert Kunze <quixotic.worx@protonmail.com>",
   "license": "MIT",
   "scripts": {
-    "install": "rollup -c -i src/dom.js -o index.js",
+    "prepublish": "rollup -c -i src/dom.js -o index.js",
     "test": "rollup -c | node"
   },
   "files": [
