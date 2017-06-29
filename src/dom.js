@@ -180,14 +180,15 @@ function DOMElement(name, owner) {
 		without(this.childNodes, child);
 	};
 	this.setAttribute = (name, value) => {
-		this.attributes.push({name, value});
-		this.attributes[name] = value;
+		let obj = {name, value};
+		this.attributes.push(obj);
+		this.attributes[name] = obj;
 	};
 	this.removeAttribute = name => {
 		without(this.attributes, name, 'name');
 		delete this.attributes[name];
 	};
-	this.getAttribute = name => this.attributes[name] || '';
+	this.getAttribute = name => this.attributes[name] && this.attributes[name].value || '';
 	this.replaceChild = (newChild, toReplace) => {
 		let idx = this.childNodes.indexOf(toReplace);
 		this.childNodes[idx] = newChild;

@@ -88,3 +88,12 @@ window.urls = {"test": "1234"};
 	t.is(document.getElementsByTagName('example').length, 1, 'can find custom component');
 	t.is(document.querySelectorAll('[rel="zino-tag"]').length, 1, 'can find zino link');
 });
+
+test('attribute access', t => {
+	document = new Document('<div class="test" data-value="me">test</div>');
+	t.is(document.getElementsByClassName('test')[0].getAttribute('data-value'), 'me', 'getAttribute returns correct value');
+	t.is(document.getElementsByClassName('test')[0].attributes['data-value'].value, 'me', 'attributes array returns correct value');
+	t.is(document.getElementsByClassName('test')[0].attributes[1].name, 'data-value', 'attributes array has numerical access');
+	t.is(document.getElementsByClassName('test')[0].attributes[1].value, 'me', 'attributes array numerical access returns correct value');
+	t.not(document.getElementsByClassName('test')[0].attributes['class'], 'test', 'attributes array does not directly provide access to value');	
+});
