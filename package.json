@@ -1,6 +1,6 @@
 {
-  "name": "micro-dom",
-  "version": "0.0.1",
+  "name": "nano-dom",
+  "version": "0.0.2",
   "description": "A minimal DOM-like implementation",
   "main": "index.js",
   "author": "Robert Kunze <quixotic.worx@protonmail.com>",
@@ -10,8 +10,8 @@
     "test": "rollup -c | node"
   },
   "repository": {
-     "type": "git",
-     "url": "https://github.com/AndCake/micro-dom.git"
+    "type": "git",
+    "url": "https://github.com/AndCake/nano-dom.git"
   },
   "dependencies": {
     "babel-plugin-external-helpers": "^6.22.0",
