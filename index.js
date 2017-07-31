@@ -28,40 +28,82 @@ function parseAttributes(node, attributes) {
 		}
 	}
 }
-var position = -1;
+
+function getNextTag(html) {
+	var position = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : -1;
+
+	var match = null;
+	if (position < 0) {
+		position = html.indexOf('<');
+	}
+	// we are at a < now or at the end of the string
+	if (position >= 0 && position < html.length) {
+		match = [];
+		match.index = position;
+		position += 1;
+		if (html[position] === '/') {
+			match[1] = '/';
+			position += 1;
+		}
+		var charCode = html.charCodeAt(position);
+		while (charCode >= 65 && charCode <= 90 || charCode >= 97 && charCode <= 122 || charCode === 58 || charCode === 45 || charCode === 95) {
+			match[2] = (match[2] || '') + html.charAt(position);
+			charCode = html.charCodeAt(++position);
+		}
+		if (!match[2]) {
+			return getNextTag(html, position);
+		}
+		var startAttrs = position;
+		while (position < html.length && html[position] !== '>') {
+			position++;
+		}
+		if (position < html.length) {
+			var endAttrs = position;
+			if (endAttrs - startAttrs > 1) {
+				// we have something
+				if (html[position - 1] === '/') {
+					match[4] = '/';
+					endAttrs = position - 1;
+				}
+				match[3] = html.substring(startAttrs, endAttrs);
+			}
+		}
+		match[0] = html.substring(match.index, position + 1);
+	}
+	return match;
+}
 
 function parse(document, html, parentNode) {
-	var tagRegExp = /<(\/)?([\w:_-]+)(\s+(?:[^\/>]|\/[^>])+)?(\/)?>/g;
 	var match = void 0;
 
-	if (!html.match(tagRegExp)) {
+	if (html.indexOf('<') < 0) {
 		parentNode.appendChild(document.createTextNode(html));
 	}
-	while (match = tagRegExp.exec(html)) {
-		if (position > match.index) continue;
+	while (match = getNextTag(html)) {
 		if (match[1]) {
 			// closing tag
-			var content = html.substring(position, match.index);
+			var content = html.substring(0, match.index);
 			if (content) {
 				parentNode.appendChild(document.createTextNode(content));
 			}
-			position = match.index + match[0].length;
-			return;
+			return html.substr(match.index + match[0].length);
 		} else {
 			// opening tag
-			var _content = html.substring(position, match.index);
+			var _content = html.substring(0, match.index);
 			if (_content) {
 				parentNode.appendChild(document.createTextNode(_content));
 			}
 			var node = document.createElement(match[2]);
 			parseAttributes(node, match[3]);
-			position = match.index + match[0].length;
 			if (!match[4]) {
-				parse(document, html, node);
+				html = parse(document, html.substr(match.index + match[0].length), node);
+			} else {
+				html = html.substr(match.index + match[0].length);
 			}
 			parentNode.appendChild(node);
 		}
 	}
+	return html;
 }
 
 // helpers
@@ -163,7 +205,6 @@ function DOMElement(name, owner) {
 			}).join('');
 		},
 		set: function set(value) {
-			position = -1;
 			_this.childNodes = [];
 			parse(owner, value, _this);
 		}
@@ -285,14 +326,13 @@ function Document(html) {
 	this.childNodes = [this.documentElement];
 	this.children = [this.documentElement];
 	this.nodeType = 9;
-	position = -1;
 
-	if (html.trim().indexOf('<!DOCTYPE') < 0) {
+	if (typeof html !== 'string' || html.trim().indexOf('<!DOCTYPE') < 0) {
 		this.head = this.createElement('head');
 		this.body = this.createElement('body');
 		this.documentElement.appendChild(this.head);
 		this.documentElement.appendChild(this.body);
-		parse(this, html, this.body);
+		typeof html === 'string' && parse(this, html, this.body);
 	} else {
 		html.match(/<html([^>]*)>/);
 		if (RegExp.$1) {

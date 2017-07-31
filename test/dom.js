@@ -97,3 +97,9 @@ test('attribute access', t => {
 	t.is(document.getElementsByClassName('test')[0].attributes[1].value, 'me', 'attributes array numerical access returns correct value');
 	t.not(document.getElementsByClassName('test')[0].attributes['class'], 'test', 'attributes array does not directly provide access to value');	
 });
+
+test('parsing speed', t => {
+	let fs = require('fs');
+	let code = fs.readFileSync('./test/test.html', 'utf-8');
+	document = new Document(code);
+});
