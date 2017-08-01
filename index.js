@@ -46,7 +46,13 @@ function getNextTag(html) {
 			position += 1;
 		}
 		var charCode = html.charCodeAt(position);
-		while (charCode >= 65 && charCode <= 90 || charCode >= 97 && charCode <= 122 || charCode === 58 || charCode === 45 || charCode === 95) {
+		// read all tag name characters
+		while (charCode >= 65 && charCode <= 90 || // upper-cased characters
+		charCode >= 97 && charCode <= 122 || // lower-cased characters
+		charCode >= 48 && charCode <= 57 || // numbers
+		charCode === 58 || charCode === 45 || // colons and dashes
+		charCode === 95) {
+			// underscores
 			match[2] = (match[2] || '') + html.charAt(position);
 			charCode = html.charCodeAt(++position);
 		}
