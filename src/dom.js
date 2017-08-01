@@ -12,16 +12,46 @@ function without(arr, element, attr) {
 }
 
 function parseAttributes(node, attributes) {
-	let attributeRegExp = /\s+([\w:_-]+)(?:\s*=\s*(?:'([^']+)'|"([^"]+)"))?/g;
-	let match;
-
-	while (match = attributeRegExp.exec(attributes)) {
-		node.setAttribute(match[1], match[2] || match[3]);
-		if (match[1] === 'class') {
-			node.classList.add(match[2] || match[3]);
-		} else if (match[1] === 'title' || match[1] === 'name' || match[1] === 'id') {
-			node[match[1]] = match[2] || match[3];
+	attributes = (attributes || '').trim();
+	if (attributes.length <= 0) {
+		return;
+	}
+	let match = [];
+	let position = 0;
+	let charCode = attributes.charCodeAt(position);
+	while (charCode >= 65 && charCode <= 90 || 	// upper-cased characters
+		   charCode >= 97 && charCode <= 122 || // lower-cased characters
+		   charCode >= 48 && charCode <= 57 ||  // numbers
+		   charCode === 58 || charCode === 45 || // colons and dashes
+	       charCode === 95) {					// underscores
+		match[1] = (match[1] || '') + attributes.charAt(position);
+		charCode = attributes.charCodeAt(++position);
+	}
+	attributes = attributes.substr(position).trim();
+	if (attributes[0] !== '=') {
+		node.setAttribute(match[1], match[1]);
+		parseAttributes(node, attributes);
+	} else {
+		attributes = attributes.substr(1).trim();
+		if (attributes[0] === '"' || attributes[0] === "'") {
+			// search for another "
+			position = 1;
+			while (attributes[position] !== attributes[0]) {
+				match[2] = (match[2] || '') + attributes[position];
+				position += 1;
+			}
+			attributes = attributes.substr(position + 1);
+		} else {
+			match[2] = attributes.split(' ')[0];
+			attributes = attributes.split(' ').slice(1).join(' ');
 		}
+		node.setAttribute(match[1], match[2]);
+		if (match[1] === 'class') {
+			node.classList.add(match[2]);
+		} else if (match[1] === 'title' || match[1] === 'id' || match[1] === 'name') {
+			node[match[1]] = match[2];
+		}
+		return parseAttributes(node, attributes);
 	}
 }
 
@@ -50,7 +80,7 @@ function getNextTag(html, position = -1) {
 			charCode = html.charCodeAt(++position);
 		}
 		if (!match[2]) {
-			return getNextTag(html, position);
+			return getNextTag(html, html.indexOf('<', position));
 		}
 		let startAttrs = position;
 		while (position < html.length && html[position] !== '>') {
@@ -75,9 +105,6 @@ function getNextTag(html, position = -1) {
 function parse(document, html, parentNode) {
 	let match;
 
-	if (html.indexOf('<') < 0) {
-		parentNode.appendChild(document.createTextNode(html));
-	}
 	while (match = getNextTag(html)) {
 		if (match[1]) {
 			// closing tag
@@ -101,6 +128,9 @@ function parse(document, html, parentNode) {
 			}
 			parentNode.appendChild(node);
 		}
+	}
+	if (html.length > 0) {
+		parentNode.appendChild(document.createTextNode(html));
 	}
 	return html;
 }
@@ -185,71 +215,72 @@ function DOMElement(name, owner) {
 	this.ownerDocument = owner;
 	this.parentNode = null;
 	this.attributes = [];
-	Object.defineProperty(this, 'children', {
-		get: () => this.childNodes.filter(node => node.nodeType === 1)
-	});
-	Object.defineProperty(this, 'classList', {
-		get: () => new ClassList(this)
-	});
-	Object.defineProperty(this, 'innerHTML', {
-		get: () => {
-			return this.childNodes.map(tag => tag.nodeType === 1 ? tag.outerHTML : tag.nodeValue).join('');
-		},
-		set: (value) => {
-			this.childNodes = [];
-			parse(owner, value, this);
-		}
-	});
-	Object.defineProperty(this, 'outerHTML', {
-		get: () => {
-			if (Object.prototype.toString.call(this.attributes) !== '[object Array]') {
-				this.attributes = Object.keys(this.attributes).map(entry => ({name: entry, value: this.attributes[entry]}));
-				this.attributes.forEach((attr, idx, arr) => {
-					this.attributes[attr.name] = attr.value;
-				});
-			}
-			let attributes = this.attributes.map(attr => `${attr.name}="${typeof attr.value === 'undefined'?'':attr.value}"`).join(' ');
-			if (selfClosing.indexOf(this.tagName) >= 0) {
-				return `<${this.tagName}${attributes ? ' ' + attributes : ''}/>`;
-			} else {
-				return `<${this.tagName}${attributes ? ' ' + attributes : ''}>${this.innerHTML}</${this.tagName}>`;
-			}
-		}
-	});
-	this.appendChild = child => {
-		this.childNodes.push(child);
-		child.parentNode = this;
-	};
-	this.removeChild = child => {
-		without(this.childNodes, child);
-	};
-	this.setAttribute = (name, value) => {
-		let obj = {name, value};
-		this.attributes.push(obj);
-		this.attributes[name] = obj;
-	};
-	this.removeAttribute = name => {
-		without(this.attributes, name, 'name');
-		delete this.attributes[name];
-	};
-	this.getAttribute = name => this.attributes[name] && this.attributes[name].value || '';
-	this.replaceChild = (newChild, toReplace) => {
-		let idx = this.childNodes.indexOf(toReplace);
-		this.childNodes[idx] = newChild;
-		newChild.parentNode = this;
-	};
-	this.addEventListener = () => {};
-	this.removeEventListener = () => {};
-	this.getElementsByTagName = tagName => {
-		return spread(this.children.filter(tag => tag.tagName === tagName).concat(this.children.map(tag => tag.getElementsByTagName(tagName))));
-	};
-	this.getElementsByClassName = className => {
-		return spread(this.children.filter(tag => tag.classList.contains(className)).concat(this.children.map(tag => tag.getElementsByClassName(className))));
-	};
-	this.querySelectorAll = selector => {
-		return spread(this.children.filter(tag => matchesSelector(tag, selector)).concat(this.children.map(tag => tag.querySelectorAll(selector))));
-	};
 }
+
+Object.defineProperty(DOMElement.prototype, 'children', {
+	get: function() { return this.childNodes.filter(node => node.nodeType === 1) }
+});
+Object.defineProperty(DOMElement.prototype, 'classList', {
+	get: function() { return new ClassList(this); }
+});
+Object.defineProperty(DOMElement.prototype, 'innerHTML', {
+	get: function() {
+		return this.childNodes.map(tag => tag.nodeType === 1 ? tag.outerHTML : tag.nodeValue).join('');
+	},
+	set: function (value) {
+		this.childNodes = [];
+		parse(owner, value, this);
+	}
+});
+Object.defineProperty(DOMElement.prototype, 'outerHTML', {
+	get: function() {
+		if (Object.prototype.toString.call(this.attributes) !== '[object Array]') {
+			this.attributes = Object.keys(this.attributes).map(entry => ({name: entry, value: this.attributes[entry]}));
+			this.attributes.forEach((attr, idx, arr) => {
+				this.attributes[attr.name] = attr.value;
+			});
+		}
+		let attributes = this.attributes.map(attr => `${attr.name}="${typeof attr.value === 'undefined'?'':attr.value}"`).join(' ');
+		if (selfClosing.indexOf(this.tagName) >= 0) {
+			return `<${this.tagName}${attributes ? ' ' + attributes : ''}/>`;
+		} else {
+			return `<${this.tagName}${attributes ? ' ' + attributes : ''}>${this.innerHTML}</${this.tagName}>`;
+		}
+	}
+});
+DOMElement.prototype.appendChild = function(child) {
+	this.childNodes.push(child);
+	child.parentNode = this;
+};
+DOMElement.prototype.removeChild = function(child) {
+	without(this.childNodes, child);
+};
+DOMElement.prototype.setAttribute = function(name, value) {
+	let obj = {name, value};
+	this.attributes.push(obj);
+	this.attributes[name] = obj;
+};
+DOMElement.prototype.removeAttribute = function(name) {
+	without(this.attributes, name, 'name');
+	delete this.attributes[name];
+};
+DOMElement.prototype.getAttribute = function(name) { return this.attributes[name] && this.attributes[name].value || ''; };
+DOMElement.prototype.replaceChild = function(newChild, toReplace) {
+	let idx = this.childNodes.indexOf(toReplace);
+	this.childNodes[idx] = newChild;
+	newChild.parentNode = this;
+};
+DOMElement.prototype.addEventListener = function() {};
+DOMElement.prototype.removeEventListener = function() {};
+DOMElement.prototype.getElementsByTagName = function(tagName) {
+	return spread(this.children.filter(tag => tag.tagName === tagName).concat(this.children.map(tag => tag.getElementsByTagName(tagName))));
+};
+DOMElement.prototype.getElementsByClassName = function(className) {
+	return spread(this.children.filter(tag => tag.classList.contains(className)).concat(this.children.map(tag => tag.getElementsByClassName(className))));
+};
+DOMElement.prototype.querySelectorAll = function(selector) {
+	return spread(this.children.filter(tag => matchesSelector(tag, selector)).concat(this.children.map(tag => tag.querySelectorAll(selector))));
+};
 
 function DOMText(content, owner) {
 	this.nodeValue = content;
