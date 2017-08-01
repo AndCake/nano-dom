@@ -243,7 +243,7 @@ Object.defineProperty(DOMElement.prototype, 'innerHTML', {
 	},
 	set: function set(value) {
 		this.childNodes = [];
-		parse(owner, value, this);
+		parse(this.ownerDocument, value, this);
 	}
 });
 Object.defineProperty(DOMElement.prototype, 'outerHTML', {
