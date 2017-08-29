@@ -205,7 +205,7 @@ function spread(arr) {
 	return result;
 }
 
-function DOMElement(name, owner) {
+function HTMLElement(name, owner) {
 	this.nodeType = 1;
 	this.nodeName = name;
 	this.tagName = name;
@@ -217,13 +217,13 @@ function DOMElement(name, owner) {
 	this.attributes = [];
 }
 
-Object.defineProperty(DOMElement.prototype, 'children', {
+Object.defineProperty(HTMLElement.prototype, 'children', {
 	get: function() { return this.childNodes.filter(node => node.nodeType === 1) }
 });
-Object.defineProperty(DOMElement.prototype, 'classList', {
+Object.defineProperty(HTMLElement.prototype, 'classList', {
 	get: function() { return new ClassList(this); }
 });
-Object.defineProperty(DOMElement.prototype, 'innerHTML', {
+Object.defineProperty(HTMLElement.prototype, 'innerHTML', {
 	get: function() {
 		return this.childNodes.map(tag => tag.nodeType === 1 ? tag.outerHTML : tag.nodeValue).join('');
 	},
@@ -232,7 +232,7 @@ Object.defineProperty(DOMElement.prototype, 'innerHTML', {
 		parse(this.ownerDocument, value, this);
 	}
 });
-Object.defineProperty(DOMElement.prototype, 'outerHTML', {
+Object.defineProperty(HTMLElement.prototype, 'outerHTML', {
 	get: function() {
 		if (Object.prototype.toString.call(this.attributes) !== '[object Array]') {
 			this.attributes = Object.keys(this.attributes).map(entry => ({name: entry, value: this.attributes[entry]}));
@@ -248,37 +248,37 @@ Object.defineProperty(DOMElement.prototype, 'outerHTML', {
 		}
 	}
 });
-DOMElement.prototype.appendChild = function(child) {
+HTMLElement.prototype.appendChild = function(child) {
 	this.childNodes.push(child);
 	child.parentNode = this;
 };
-DOMElement.prototype.removeChild = function(child) {
+HTMLElement.prototype.removeChild = function(child) {
 	without(this.childNodes, child);
 };
-DOMElement.prototype.setAttribute = function(name, value) {
+HTMLElement.prototype.setAttribute = function(name, value) {
 	let obj = {name, value};
 	this.attributes.push(obj);
 	this.attributes[name] = obj;
 };
-DOMElement.prototype.removeAttribute = function(name) {
+HTMLElement.prototype.removeAttribute = function(name) {
 	without(this.attributes, name, 'name');
 	delete this.attributes[name];
 };
-DOMElement.prototype.getAttribute = function(name) { return this.attributes[name] && this.attributes[name].value || ''; };
-DOMElement.prototype.replaceChild = function(newChild, toReplace) {
+HTMLElement.prototype.getAttribute = function(name) { return this.attributes[name] && this.attributes[name].value || ''; };
+HTMLElement.prototype.replaceChild = function(newChild, toReplace) {
 	let idx = this.childNodes.indexOf(toReplace);
 	this.childNodes[idx] = newChild;
 	newChild.parentNode = this;
 };
-DOMElement.prototype.addEventListener = function() {};
-DOMElement.prototype.removeEventListener = function() {};
-DOMElement.prototype.getElementsByTagName = function(tagName) {
+HTMLElement.prototype.addEventListener = function() {};
+HTMLElement.prototype.removeEventListener = function() {};
+HTMLElement.prototype.getElementsByTagName = function(tagName) {
 	return spread(this.children.filter(tag => tag.tagName === tagName).concat(this.children.map(tag => tag.getElementsByTagName(tagName))));
 };
-DOMElement.prototype.getElementsByClassName = function(className) {
+HTMLElement.prototype.getElementsByClassName = function(className) {
 	return spread(this.children.filter(tag => tag.classList.contains(className)).concat(this.children.map(tag => tag.getElementsByClassName(className))));
 };
-DOMElement.prototype.querySelectorAll = function(selector) {
+HTMLElement.prototype.querySelectorAll = function(selector) {
 	return spread(this.children.filter(tag => matchesSelector(tag, selector)).concat(this.children.map(tag => tag.querySelectorAll(selector))));
 };
 
@@ -294,7 +294,7 @@ export default function Document(html) {
 		return new Document(html);
 	}
 
-	this.createElement = name => new DOMElement(name, this);
+	this.createElement = name => new HTMLElement(name, this);
 	this.createTextNode = content => new DOMText(content, this);
 	this.getElementsByTagName = name => spread(this.children.filter(tag => tag.tagName === name).concat(this.children.map(tag => tag.getElementsByTagName(name))));
 	this.getElementsByClassName = className => spread(this.children.filter(tag => tag.classList.contains(className)).concat(this.children.map(tag => tag.getElementsByClassName(className))));
@@ -327,5 +327,6 @@ export default function Document(html) {
 }
 
 module.exports = Document;
-module.exports.DOMElement = DOMElement;
+module.exports.DOMElement = HTMLElement;
 module.exports.DOMText = DOMText;
+global.HTMLElement = HTMLElement;
