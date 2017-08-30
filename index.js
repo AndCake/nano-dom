@@ -211,7 +211,7 @@ function spread(arr) {
 	return result;
 }
 
-function DOMElement(name, owner) {
+function HTMLElement(name, owner) {
 	this.nodeType = 1;
 	this.nodeName = name;
 	this.tagName = name;
@@ -223,19 +223,19 @@ function DOMElement(name, owner) {
 	this.attributes = [];
 }
 
-Object.defineProperty(DOMElement.prototype, 'children', {
+Object.defineProperty(HTMLElement.prototype, 'children', {
 	get: function get() {
 		return this.childNodes.filter(function (node) {
 			return node.nodeType === 1;
 		});
 	}
 });
-Object.defineProperty(DOMElement.prototype, 'classList', {
+Object.defineProperty(HTMLElement.prototype, 'classList', {
 	get: function get() {
 		return new ClassList(this);
 	}
 });
-Object.defineProperty(DOMElement.prototype, 'innerHTML', {
+Object.defineProperty(HTMLElement.prototype, 'innerHTML', {
 	get: function get() {
 		return this.childNodes.map(function (tag) {
 			return tag.nodeType === 1 ? tag.outerHTML : tag.nodeValue;
@@ -246,7 +246,7 @@ Object.defineProperty(DOMElement.prototype, 'innerHTML', {
 		parse(this.ownerDocument, value, this);
 	}
 });
-Object.defineProperty(DOMElement.prototype, 'outerHTML', {
+Object.defineProperty(HTMLElement.prototype, 'outerHTML', {
 	get: function get() {
 		var _this = this;
 
@@ -268,47 +268,47 @@ Object.defineProperty(DOMElement.prototype, 'outerHTML', {
 		}
 	}
 });
-DOMElement.prototype.appendChild = function (child) {
+HTMLElement.prototype.appendChild = function (child) {
 	this.childNodes.push(child);
 	child.parentNode = this;
 };
-DOMElement.prototype.removeChild = function (child) {
+HTMLElement.prototype.removeChild = function (child) {
 	without(this.childNodes, child);
 };
-DOMElement.prototype.setAttribute = function (name, value) {
+HTMLElement.prototype.setAttribute = function (name, value) {
 	var obj = { name: name, value: value };
 	this.attributes.push(obj);
 	this.attributes[name] = obj;
 };
-DOMElement.prototype.removeAttribute = function (name) {
+HTMLElement.prototype.removeAttribute = function (name) {
 	without(this.attributes, name, 'name');
 	delete this.attributes[name];
 };
-DOMElement.prototype.getAttribute = function (name) {
+HTMLElement.prototype.getAttribute = function (name) {
 	return this.attributes[name] && this.attributes[name].value || '';
 };
-DOMElement.prototype.replaceChild = function (newChild, toReplace) {
+HTMLElement.prototype.replaceChild = function (newChild, toReplace) {
 	var idx = this.childNodes.indexOf(toReplace);
 	this.childNodes[idx] = newChild;
 	newChild.parentNode = this;
 };
-DOMElement.prototype.addEventListener = function () {};
-DOMElement.prototype.removeEventListener = function () {};
-DOMElement.prototype.getElementsByTagName = function (tagName) {
+HTMLElement.prototype.addEventListener = function () {};
+HTMLElement.prototype.removeEventListener = function () {};
+HTMLElement.prototype.getElementsByTagName = function (tagName) {
 	return spread(this.children.filter(function (tag) {
 		return tag.tagName === tagName;
 	}).concat(this.children.map(function (tag) {
 		return tag.getElementsByTagName(tagName);
 	})));
 };
-DOMElement.prototype.getElementsByClassName = function (className) {
+HTMLElement.prototype.getElementsByClassName = function (className) {
 	return spread(this.children.filter(function (tag) {
 		return tag.classList.contains(className);
 	}).concat(this.children.map(function (tag) {
 		return tag.getElementsByClassName(className);
 	})));
 };
-DOMElement.prototype.querySelectorAll = function (selector) {
+HTMLElement.prototype.querySelectorAll = function (selector) {
 	return spread(this.children.filter(function (tag) {
 		return matchesSelector(tag, selector);
 	}).concat(this.children.map(function (tag) {
@@ -331,7 +331,7 @@ function Document(html) {
 	}
 
 	this.createElement = function (name) {
-		return new DOMElement(name, _this2);
+		return new HTMLElement(name, _this2);
 	};
 	this.createTextNode = function (content) {
 		return new DOMText(content, _this2);
@@ -385,5 +385,6 @@ function Document(html) {
 }
 
 module.exports = Document;
-module.exports.DOMElement = DOMElement;
+module.exports.DOMElement = HTMLElement;
 module.exports.DOMText = DOMText;
+typeof global !== 'undefined' && (global.HTMLElement = HTMLElement);

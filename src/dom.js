@@ -329,4 +329,4 @@ export default function Document(html) {
 module.exports = Document;
 module.exports.DOMElement = HTMLElement;
 module.exports.DOMText = DOMText;
-global.HTMLElement = HTMLElement;
+typeof global !== 'undefined' && (global.HTMLElement = HTMLElement);
