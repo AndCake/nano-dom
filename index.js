@@ -4,17 +4,6 @@ Object.defineProperty(exports, '__esModule', { value: true });
 
 var selfClosing = ['input', 'link', 'meta', 'hr', 'br', 'source', 'img'];
 
-function without(arr, element, attr) {
-	var idx = void 0;
-	arr.forEach(function (node, index) {
-		if (attr && node[attr] === element || node === element) {
-			idx = index;
-		}
-	});
-	arr.splice(idx, 1);
-	return arr;
-}
-
 function parseAttributes(node, attributes) {
 	attributes = (attributes || '').trim();
 	if (attributes.length <= 0) {
@@ -96,12 +85,12 @@ function getNextTag(html) {
 		}
 		if (position < html.length) {
 			var endAttrs = position;
+			if (html[position - 1] === '/') {
+				match[4] = '/';
+				endAttrs = position - 1;
+			}
 			if (endAttrs - startAttrs > 1) {
 				// we have something
-				if (html[position - 1] === '/') {
-					match[4] = '/';
-					endAttrs = position - 1;
-				}
 				match[3] = html.substring(startAttrs, endAttrs);
 			}
 		}
@@ -110,12 +99,16 @@ function getNextTag(html) {
 	return match;
 }
 
+var level = [];
 function parse(document, html, parentNode) {
 	var match = void 0;
 
 	while (match = getNextTag(html)) {
 		if (match[1]) {
 			// closing tag
+			if (level.length === 0) throw new Error('Unexpected closing tag ' + match[2]);
+			var closed = level.pop();
+			if (closed !== match[2]) throw new Error('Unexpected closing tag ' + match[2] + '; expected ' + closed);
 			var content = html.substring(0, match.index);
 			if (content) {
 				parentNode.appendChild(document.createTextNode(content));
@@ -129,13 +122,17 @@ function parse(document, html, parentNode) {
 			}
 			var node = document.createElement(match[2]);
 			parseAttributes(node, match[3]);
-			if (!match[4]) {
+			if (!match[4] && selfClosing.indexOf(match[2]) < 0) {
+				level.push(match[2]);
 				html = parse(document, html.substr(match.index + match[0].length), node);
 			} else {
 				html = html.substr(match.index + match[0].length);
 			}
 			parentNode.appendChild(node);
 		}
+	}
+	if (level.length > 0) {
+		throw new Error('Unclosed tag' + (level.length > 1 ? 's ' : ' ') + level.join(', '));
 	}
 	if (html.length > 0) {
 		parentNode.appendChild(document.createTextNode(html));
@@ -243,6 +240,7 @@ Object.defineProperty(HTMLElement.prototype, 'innerHTML', {
 	},
 	set: function set(value) {
 		this.childNodes = [];
+		level = [];
 		parse(this.ownerDocument, value, this);
 	}
 });
@@ -273,15 +271,24 @@ HTMLElement.prototype.appendChild = function (child) {
 	child.parentNode = this;
 };
 HTMLElement.prototype.removeChild = function (child) {
-	without(this.childNodes, child);
+	var idx = this.childNodes.indexOf(child);
+	if (idx >= 0) this.childNodes.splice(idx, 1);
 };
 HTMLElement.prototype.setAttribute = function (name, value) {
 	var obj = { name: name, value: value };
-	this.attributes.push(obj);
+	if (this.attributes[name]) {
+		this.attributes[this.attributes.indexOf(this.attributes[name])] = obj;
+	} else {
+		this.attributes.push(obj);
+	}
 	this.attributes[name] = obj;
+	if (name === 'class') this.className = value;
 };
 HTMLElement.prototype.removeAttribute = function (name) {
-	without(this.attributes, name, 'name');
+	var idx = this.attributes.indexOf(this.attributes[name]);
+	if (idx >= 0) {
+		this.attributes.splice(idx, 1);
+	}
 	delete this.attributes[name];
 };
 HTMLElement.prototype.getAttribute = function (name) {
@@ -289,7 +296,7 @@ HTMLElement.prototype.getAttribute = function (name) {
 };
 HTMLElement.prototype.replaceChild = function (newChild, toReplace) {
 	var idx = this.childNodes.indexOf(toReplace);
-	this.childNodes[idx] = newChild;
+	this.childNodes.splice(idx, 1, newChild);
 	newChild.parentNode = this;
 };
 HTMLElement.prototype.addEventListener = function () {};
@@ -406,14 +413,17 @@ function Document(html) {
 		this.body = this.createElement('body');
 		this.documentElement.appendChild(this.head);
 		this.documentElement.appendChild(this.body);
-		typeof html === 'string' && parse(this, html, this.body);
+		if (typeof html === 'string') {
+			level = [];
+			parse(this, html, this.body);
+		}
 	} else {
 		html.match(/<html([^>]*)>/);
 		if (RegExp.$1) {
 			parseAttributes(this.documentElement, RegExp.$1);
 		}
 		html = html.replace(/<!DOCTYPE[^>]+>[\n\s]*<html([^>]*)>/g, '').replace(/<\/html>/g, '');
-
+		level = [];
 		parse(this, html, this.documentElement);
 		this.head = this.getElementsByTagName('head')[0];
 		this.body = this.getElementsByTagName('body')[0];
