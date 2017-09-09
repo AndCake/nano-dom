@@ -315,6 +315,41 @@ HTMLElement.prototype.querySelectorAll = function (selector) {
 		return tag.querySelectorAll(selector);
 	})));
 };
+HTMLElement.prototype.getElementById = function (id) {
+	var tag = this.children.find(function (tag) {
+		return tag.attributes.id && tag.attributes.id.value === id;
+	});
+	if (!tag) {
+		var _iteratorNormalCompletion = true;
+		var _didIteratorError = false;
+		var _iteratorError = undefined;
+
+		try {
+			for (var _iterator = this.children[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+				var child = _step.value;
+
+				tag = child.getElementById(id);
+				if (tag) {
+					return tag;
+				}
+			}
+		} catch (err) {
+			_didIteratorError = true;
+			_iteratorError = err;
+		} finally {
+			try {
+				if (!_iteratorNormalCompletion && _iterator.return) {
+					_iterator.return();
+				}
+			} finally {
+				if (_didIteratorError) {
+					throw _iteratorError;
+				}
+			}
+		}
+	}
+	return tag;
+};
 
 function DOMText(content, owner) {
 	this.nodeValue = content;
@@ -336,6 +371,7 @@ function Document(html) {
 	this.createTextNode = function (content) {
 		return new DOMText(content, _this2);
 	};
+	this.getElementById = HTMLElement.prototype.getElementById.bind(this);
 	this.getElementsByTagName = function (name) {
 		return spread(_this2.children.filter(function (tag) {
 			return tag.tagName === name;

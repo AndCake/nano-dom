@@ -103,3 +103,9 @@ test('parsing speed', t => {
 	let code = fs.readFileSync('./test/test.html', 'utf-8');
 	document = new Document(code);
 });
+
+test('can deal with broken innerHTML data', t => {
+	document = new Document('<div></div>');
+	document.body.children[0].innerHTML = '<test>1234<div><img src="test">test</div>Me';
+	t.is(document.body.innerHTML, '<div><test>1234<div><img src="test"/>test</div>Me</test></div>');
+});

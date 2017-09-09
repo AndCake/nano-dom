@@ -281,6 +281,18 @@ HTMLElement.prototype.getElementsByClassName = function(className) {
 HTMLElement.prototype.querySelectorAll = function(selector) {
 	return spread(this.children.filter(tag => matchesSelector(tag, selector)).concat(this.children.map(tag => tag.querySelectorAll(selector))));
 };
+HTMLElement.prototype.getElementById = function(id) {
+	let tag = this.children.find(tag => tag.attributes.id && tag.attributes.id.value === id);
+	if (!tag) {
+		for (let child of this.children) {
+			tag = child.getElementById(id);
+			if (tag) {
+				return tag;
+			}
+		}
+	}
+	return tag;
+};
 
 function DOMText(content, owner) {
 	this.nodeValue = content;
@@ -296,6 +308,7 @@ export default function Document(html) {
 
 	this.createElement = name => new HTMLElement(name, this);
 	this.createTextNode = content => new DOMText(content, this);
+	this.getElementById = HTMLElement.prototype.getElementById.bind(this);
 	this.getElementsByTagName = name => spread(this.children.filter(tag => tag.tagName === name).concat(this.children.map(tag => tag.getElementsByTagName(name))));
 	this.getElementsByClassName = className => spread(this.children.filter(tag => tag.classList.contains(className)).concat(this.children.map(tag => tag.getElementsByClassName(className))));
 	this.querySelectorAll = selector => spread(this.children.filter(tag => matchesSelector(tag, selector)).concat(this.children.map(tag => tag.querySelectorAll(selector))));
