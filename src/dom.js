@@ -300,7 +300,7 @@ HTMLElement.prototype.querySelectorAll = function(selector) {
 	return findElements(this, el => matchesSelector(el, selector));
 };
 HTMLElement.prototype.getElementById = function(id) {
-	return findElements(this, el => el.getAttribute('id') === id);
+	return findElements(this, el => el.getAttribute('id') === id)[0];
 };
 
 function DOMText(content, owner) {

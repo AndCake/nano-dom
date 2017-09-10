@@ -200,10 +200,10 @@ function matchesSelector(tag, selector) {
 	return false;
 }
 
-function spread(arr) {
+function findElements(start, filterFn) {
 	var result = [];
-	arr.forEach(function (entry) {
-		result = result.concat(entry);
+	start.children.forEach(function (child) {
+		result = result.concat(filterFn(child) ? child : [], findElements(child, filterFn));
 	});
 	return result;
 }
@@ -302,60 +302,24 @@ HTMLElement.prototype.replaceChild = function (newChild, toReplace) {
 HTMLElement.prototype.addEventListener = function () {};
 HTMLElement.prototype.removeEventListener = function () {};
 HTMLElement.prototype.getElementsByTagName = function (tagName) {
-	return spread(this.children.filter(function (tag) {
-		return tag.tagName === tagName;
-	}).concat(this.children.map(function (tag) {
-		return tag.getElementsByTagName(tagName);
-	})));
+	return findElements(this, function (el) {
+		return el.tagName === tagName;
+	});
 };
 HTMLElement.prototype.getElementsByClassName = function (className) {
-	return spread(this.children.filter(function (tag) {
-		return tag.classList.contains(className);
-	}).concat(this.children.map(function (tag) {
-		return tag.getElementsByClassName(className);
-	})));
+	return findElements(this, function (el) {
+		return el.classList.contains(className);
+	});
 };
 HTMLElement.prototype.querySelectorAll = function (selector) {
-	return spread(this.children.filter(function (tag) {
-		return matchesSelector(tag, selector);
-	}).concat(this.children.map(function (tag) {
-		return tag.querySelectorAll(selector);
-	})));
+	return findElements(this, function (el) {
+		return matchesSelector(el, selector);
+	});
 };
 HTMLElement.prototype.getElementById = function (id) {
-	var tag = this.children.find(function (tag) {
-		return tag.attributes.id && tag.attributes.id.value === id;
-	});
-	if (!tag) {
-		var _iteratorNormalCompletion = true;
-		var _didIteratorError = false;
-		var _iteratorError = undefined;
-
-		try {
-			for (var _iterator = this.children[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
-				var child = _step.value;
-
-				tag = child.getElementById(id);
-				if (tag) {
-					return tag;
-				}
-			}
-		} catch (err) {
-			_didIteratorError = true;
-			_iteratorError = err;
-		} finally {
-			try {
-				if (!_iteratorNormalCompletion && _iterator.return) {
-					_iterator.return();
-				}
-			} finally {
-				if (_didIteratorError) {
-					throw _iteratorError;
-				}
-			}
-		}
-	}
-	return tag;
+	return findElements(this, function (el) {
+		return el.getAttribute('id') === id;
+	})[0];
 };
 
 function DOMText(content, owner) {
@@ -379,27 +343,9 @@ function Document(html) {
 		return new DOMText(content, _this2);
 	};
 	this.getElementById = HTMLElement.prototype.getElementById.bind(this);
-	this.getElementsByTagName = function (name) {
-		return spread(_this2.children.filter(function (tag) {
-			return tag.tagName === name;
-		}).concat(_this2.children.map(function (tag) {
-			return tag.getElementsByTagName(name);
-		})));
-	};
-	this.getElementsByClassName = function (className) {
-		return spread(_this2.children.filter(function (tag) {
-			return tag.classList.contains(className);
-		}).concat(_this2.children.map(function (tag) {
-			return tag.getElementsByClassName(className);
-		})));
-	};
-	this.querySelectorAll = function (selector) {
-		return spread(_this2.children.filter(function (tag) {
-			return matchesSelector(tag, selector);
-		}).concat(_this2.children.map(function (tag) {
-			return tag.querySelectorAll(selector);
-		})));
-	};
+	this.getElementsByTagName = HTMLElement.prototype.getElementsByTagName.bind(this);
+	this.getElementsByClassName = HTMLElement.prototype.getElementsByClassName.bind(this);
+	this.querySelectorAll = HTMLElement.prototype.querySelectorAll.bind(this);
 	this.addEventListener = function () {};
 	this.removeEventListener = function () {};
 

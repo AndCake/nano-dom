@@ -116,4 +116,5 @@ test('element access', t => {
 	document = new Document('<div id="t1" class="test" __ready="true"><i id="italic" __ready="true">huhu</i></div><div __ready="true" id="t2" class="test"><b __ready="true" id="bold"></b></div>');
 	let ids = document.querySelectorAll('[__ready]').map(el => el.getAttribute('id')).join(',');
 	t.is(ids, 't1,italic,t2,bold', 'finds all instances in correct order');
+	t.is(document.getElementById('bold').outerHTML, '<b __ready="true" id="bold"></b>');
 });
