@@ -1,6 +1,6 @@
 {
   "name": "nano-dom",
-  "version": "0.1.8",
+  "version": "0.1.9",
   "description": "A minimal DOM-like implementation",
   "main": "index.js",
   "author": "Robert Kunze <quixotic.worx@protonmail.com>",
