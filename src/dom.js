@@ -205,10 +205,10 @@ function matchesSelector(tag, selector) {
 	return false;
 }
 
-function spread(arr) {
+function findElements(start, filterFn) {
 	let result = [];
-	arr.forEach(entry => {
-		result = result.concat(entry);
+	start.children.forEach(child => {
+		result = result.concat(filterFn(child) ? child : [], findElements(child, filterFn));
 	});
 	return result;
 }
@@ -291,25 +291,16 @@ HTMLElement.prototype.replaceChild = function(newChild, toReplace) {
 HTMLElement.prototype.addEventListener = function() {};
 HTMLElement.prototype.removeEventListener = function() {};
 HTMLElement.prototype.getElementsByTagName = function(tagName) {
-	return spread(this.children.filter(tag => tag.tagName === tagName).concat(this.children.map(tag => tag.getElementsByTagName(tagName))));
+	return findElements(this, el => el.tagName === tagName);
 };
 HTMLElement.prototype.getElementsByClassName = function(className) {
-	return spread(this.children.filter(tag => tag.classList.contains(className)).concat(this.children.map(tag => tag.getElementsByClassName(className))));
+	return findElements(this, el => el.classList.contains(className));
 };
 HTMLElement.prototype.querySelectorAll = function(selector) {
-	return spread(this.children.filter(tag => matchesSelector(tag, selector)).concat(this.children.map(tag => tag.querySelectorAll(selector))));
+	return findElements(this, el => matchesSelector(el, selector));
 };
 HTMLElement.prototype.getElementById = function(id) {
-	let tag = this.children.find(tag => tag.attributes.id && tag.attributes.id.value === id);
-	if (!tag) {
-		for (let child of this.children) {
-			tag = child.getElementById(id);
-			if (tag) {
-				return tag;
-			}
-		}
-	}
-	return tag;
+	return findElements(this, el => el.getAttribute('id') === id);
 };
 
 function DOMText(content, owner) {
@@ -327,9 +318,9 @@ export default function Document(html) {
 	this.createElement = name => new HTMLElement(name, this);
 	this.createTextNode = content => new DOMText(content, this);
 	this.getElementById = HTMLElement.prototype.getElementById.bind(this);
-	this.getElementsByTagName = name => spread(this.children.filter(tag => tag.tagName === name).concat(this.children.map(tag => tag.getElementsByTagName(name))));
-	this.getElementsByClassName = className => spread(this.children.filter(tag => tag.classList.contains(className)).concat(this.children.map(tag => tag.getElementsByClassName(className))));
-	this.querySelectorAll = selector => spread(this.children.filter(tag => matchesSelector(tag, selector)).concat(this.children.map(tag => tag.querySelectorAll(selector))));
+	this.getElementsByTagName = HTMLElement.prototype.getElementsByTagName.bind(this);
+	this.getElementsByClassName = HTMLElement.prototype.getElementsByClassName.bind(this);
+	this.querySelectorAll = HTMLElement.prototype.querySelectorAll.bind(this);
 	this.addEventListener = () => {};
 	this.removeEventListener = () => {};
 
