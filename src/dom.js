@@ -11,6 +11,21 @@ function without(arr, element, attr) {
 	return arr;
 }
 
+function isCustomSelfClosing(tagName) {
+	let tagList = module.exports.options.customSelfClosingTags;
+	if (!tagList) return false;
+	if (Array.isArray(tagList)) {
+		return tagList.indexOf(tagName) >= 0;
+	}
+	if (tagList instanceof RegExp) {
+		return tagList.test(tagName);
+	}
+	if (typeof tagList === 'string') {
+		return (new RegExp(tagList)).test(tagName);
+	}
+	throw new Error('Unknown custom self closing tag list format. Please use an array with tag names, a regular expression or a string');
+}
+
 function parseAttributes(node, attributes) {
 	attributes = (attributes || '').trim();
 	if (attributes.length <= 0) {
@@ -125,7 +140,7 @@ function parse(document, html, parentNode) {
 			}
 			let node = document.createElement(match[2]);
 			parseAttributes(node, match[3]);
-			if (!match[4] && selfClosing.indexOf(match[2]) < 0) {
+			if (!match[4] && selfClosing.indexOf(match[2]) < 0 && !isCustomSelfClosing(match[2])) {
 				level.push(match[2]);
 				html = parse(document, html.substr(match.index + match[0].length), node);
 			} else {
@@ -354,4 +369,7 @@ export default function Document(html) {
 module.exports = Document;
 module.exports.DOMElement = HTMLElement;
 module.exports.DOMText = DOMText;
+module.exports.options = {
+	customSelfClosingTags: null
+};
 typeof global !== 'undefined' && (global.HTMLElement = HTMLElement);

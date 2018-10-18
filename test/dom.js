@@ -35,7 +35,6 @@ test('allows DOM modification', t => {
 	document.body.appendChild(object);
 	t.is(document.body.innerHTML, '<div class="Hallo">World!</div><object src="/test.obj"></object>', 'supports setAttribute and appendChild');
 	t.is(document.body.children[0], document.querySelectorAll('.Hallo')[0], 'is sorted into correct position');
-	debugger;
 	document.body.removeChild(document.body.children[0]);
 	t.is(document.body.innerHTML, '<object src="/test.obj"></object>', 'supports removeChild');
 });
@@ -117,4 +116,13 @@ test('element access', t => {
 	let ids = document.querySelectorAll('[__ready]').map(el => el.getAttribute('id')).join(',');
 	t.is(ids, 't1,italic,t2,bold', 'finds all instances in correct order');
 	t.is(document.getElementById('bold').outerHTML, '<b __ready="true" id="bold"></b>');
+});
+
+test('is able to parse custom self-closing tags', t => {
+	Document.options.customSelfClosingTags = /is(?:else|set)/
+	document = new Document('<isobject type="test"><isset name="kdans" value="${paso}">test<isif condition="${true}">test<iselse>other test</isif></isobject>');
+	t.is(document.querySelectorAll('isset').length, 1, 'finds the element');
+	t.is(document.querySelectorAll('isset')[0].innerHTML, '', 'does not have a body')
+	t.is(document.querySelectorAll('isif iselse').length, 1);
+	t.is(document.querySelectorAll('iselse')[0].innerHTML, '');
 });
