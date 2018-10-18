@@ -306,7 +306,7 @@ HTMLElement.prototype.replaceChild = function(newChild, toReplace) {
 HTMLElement.prototype.addEventListener = function() {};
 HTMLElement.prototype.removeEventListener = function() {};
 HTMLElement.prototype.getElementsByTagName = function(tagName) {
-	return findElements(this, el => el.tagName === tagName);
+	return findElements(this, el => ((tagName === '*' && el.tagName) || el.tagName === tagName));
 };
 HTMLElement.prototype.getElementsByClassName = function(className) {
 	return findElements(this, el => el.classList.contains(className));

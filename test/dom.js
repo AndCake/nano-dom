@@ -27,6 +27,7 @@ test('supports simple traversing features', t => {
 	t.is(document.querySelectorAll('.Hallo').length, 1, 'supports querySelectorAll for classes');
 	t.is(document.getElementsByClassName('Hallo').length, 1, 'supports getElementsByClassName');
 	t.is(document.getElementsByTagName('body')[0], document.body, 'supports getElementsByTagName');
+	t.is(document.getElementsByTagName('*').length, 4, 'getElementsByTagName can deal with *');
 });
 
 test('allows DOM modification', t => {
