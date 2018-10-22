@@ -265,7 +265,7 @@ Object.defineProperty(HTMLElement.prototype, 'outerHTML', {
 			});
 		}
 		let attributes = this.attributes.map(attr => `${attr.name}="${typeof attr.value === 'undefined'?'':attr.value}"`).join(' ');
-		if (selfClosing.indexOf(this.tagName) >= 0) {
+		if (selfClosing.indexOf(this.tagName) >= 0 || isCustomSelfClosing(this.tagName)) {
 			return `<${this.tagName}${attributes ? ' ' + attributes : ''}/>`;
 		} else {
 			return `<${this.tagName}${attributes ? ' ' + attributes : ''}>${this.innerHTML}</${this.tagName}>`;

@@ -95,7 +95,7 @@ test('attribute access', t => {
 	t.is(document.getElementsByClassName('test')[0].attributes['data-value'].value, 'me', 'attributes array returns correct value');
 	t.is(document.getElementsByClassName('test')[0].attributes[1].name, 'data-value', 'attributes array has numerical access');
 	t.is(document.getElementsByClassName('test')[0].attributes[1].value, 'me', 'attributes array numerical access returns correct value');
-	t.not(document.getElementsByClassName('test')[0].attributes['class'], 'test', 'attributes array does not directly provide access to value');	
+	t.not(document.getElementsByClassName('test')[0].attributes['class'], 'test', 'attributes array does not directly provide access to value');
 });
 
 test('parsing speed', t => {
@@ -126,4 +126,5 @@ test('is able to parse custom self-closing tags', t => {
 	t.is(document.querySelectorAll('isset')[0].innerHTML, '', 'does not have a body')
 	t.is(document.querySelectorAll('isif iselse').length, 1);
 	t.is(document.querySelectorAll('iselse')[0].innerHTML, '');
+	t.is(document.querySelectorAll('isif')[0].innerHTML, 'test<iselse/>other test');
 });

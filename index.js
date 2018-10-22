@@ -316,7 +316,7 @@ HTMLElement.prototype.addEventListener = function () {};
 HTMLElement.prototype.removeEventListener = function () {};
 HTMLElement.prototype.getElementsByTagName = function (tagName) {
 	return findElements(this, function (el) {
-		return el.tagName === tagName;
+		return tagName === '*' && el.tagName || el.tagName === tagName;
 	});
 };
 HTMLElement.prototype.getElementsByClassName = function (className) {
