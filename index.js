@@ -36,6 +36,9 @@ function parseAttributes(node, attributes) {
 	}
 	attributes = attributes.substr(position).trim();
 	if (attributes[0] !== '=') {
+		if (attributes[0] === '<') {
+			throw new Error('Unexpected markup while parsing attributes for ' + node.tagName + ' at ' + attributes);
+		}
 		node.setAttribute(match[1], match[1]);
 		parseAttributes(node, attributes);
 	} else {
@@ -272,7 +275,7 @@ Object.defineProperty(HTMLElement.prototype, 'outerHTML', {
 		var attributes = this.attributes.map(function (attr) {
 			return attr.name + '="' + (typeof attr.value === 'undefined' ? '' : attr.value) + '"';
 		}).join(' ');
-		if (selfClosing.indexOf(this.tagName) >= 0) {
+		if (selfClosing.indexOf(this.tagName) >= 0 || isCustomSelfClosing(this.tagName)) {
 			return '<' + this.tagName + (attributes ? ' ' + attributes : '') + '/>';
 		} else {
 			return '<' + this.tagName + (attributes ? ' ' + attributes : '') + '>' + this.innerHTML + '</' + this.tagName + '>';

@@ -44,6 +44,9 @@ function parseAttributes(node, attributes) {
 	}
 	attributes = attributes.substr(position).trim();
 	if (attributes[0] !== '=') {
+		if (attributes[0] === '<') {
+			throw new Error('Unexpected markup while parsing attributes for ' + node.tagName + ' at ' + attributes);
+		}
 		node.setAttribute(match[1], match[1]);
 		parseAttributes(node, attributes);
 	} else {
