@@ -96,7 +96,9 @@ function getNextTag(html) {
 			return getNextTag(html, html.indexOf('<', position));
 		}
 		var startAttrs = position;
-		while (position < html.length && html[position] !== '>') {
+		var isInAttributeValue = false;
+		while (position < html.length && (html[position] !== '>' || isInAttributeValue)) {
+			if (html[position] === '"') isInAttributeValue = !isInAttributeValue;
 			position++;
 		}
 		if (position < html.length) {
