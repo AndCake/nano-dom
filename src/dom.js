@@ -101,7 +101,9 @@ function getNextTag(html, position = -1) {
 			return getNextTag(html, html.indexOf('<', position));
 		}
 		let startAttrs = position;
-		while (position < html.length && html[position] !== '>') {
+		let isInAttributeValue = false;
+		while (position < html.length && (html[position] !== '>' || isInAttributeValue)) {
+			if (html[position] === '"') isInAttributeValue = !isInAttributeValue;
 			position++;
 		}
 		if (position < html.length) {

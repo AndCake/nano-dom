@@ -128,3 +128,21 @@ test('is able to parse custom self-closing tags', t => {
 	t.is(document.querySelectorAll('iselse')[0].innerHTML, '');
 	t.is(document.querySelectorAll('isif')[0].innerHTML, 'test<iselse/>other test');
 });
+
+test('can deal with attribute values that contain a > character', t => {
+	debugger;
+	const html = `<xyz><div class="approaching-discounts">
+        <isif condition="\${pdict.approachingDiscounts.length > 0}">
+                <isloop items="\${pdict.approachingDiscounts}" var="approachingDiscount">
+                    <div class="single-approaching-discount text-center">
+                    \${approachingDiscount.discountMsg}
+                    </div>
+                </isloop>
+        </isif>
+</div>
+</xyz>`;
+	document = new Document(html);
+	t.is(document.querySelectorAll('xyz').length, 1, 'can parse it');
+	t.is(document.body.innerHTML, html, 'innerHTML is the same as input');
+	t.is(document.querySelectorAll('[items]').length, 1);
+});
