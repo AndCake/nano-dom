@@ -70,7 +70,7 @@ test('supports default child properties', t => {
 
 
 <link rel="zino-tag" data-local="components/example.html"/>
-<example/>
+<example></example>
 
 
 
@@ -130,7 +130,6 @@ test('is able to parse custom self-closing tags', t => {
 });
 
 test('can deal with attribute values that contain a > character', t => {
-	debugger;
 	const html = `<xyz><div class="approaching-discounts">
         <isif condition="\${pdict.approachingDiscounts.length > 0}">
                 <isloop items="\${pdict.approachingDiscounts}" var="approachingDiscount">
