@@ -243,6 +243,7 @@ function HTMLElement(name, owner) {
 	this.ownerDocument = owner;
 	this.parentNode = null;
 	this.attributes = [];
+	this._eventListeners = {};
 }
 
 Object.defineProperty(HTMLElement.prototype, 'children', {
@@ -250,6 +251,9 @@ Object.defineProperty(HTMLElement.prototype, 'children', {
 });
 Object.defineProperty(HTMLElement.prototype, 'classList', {
 	get: function() { return new ClassList(this); }
+});
+Object.defineProperty(HTMLElement.prototype, 'firstElementChild', {
+	get: function () { return this.children[0]; }
 });
 Object.defineProperty(HTMLElement.prototype, 'innerHTML', {
 	get: function() {
@@ -285,6 +289,9 @@ HTMLElement.prototype.removeChild = function(child) {
 	let idx = this.childNodes.indexOf(child);
 	if (idx >= 0) this.childNodes.splice(idx, 1);
 };
+HTMLElement.prototype.remove = function() {
+	this.parentNode.removeChild(this);
+};
 HTMLElement.prototype.setAttribute = function(name, value) {
 	let obj = {name, value};
 	if (this.attributes[name]) {
@@ -302,14 +309,52 @@ HTMLElement.prototype.removeAttribute = function(name) {
 	}
 	delete this.attributes[name];
 };
-HTMLElement.prototype.getAttribute = function(name) { return this.attributes[name] && this.attributes[name].value || ''; };
+HTMLElement.prototype.getAttribute = function(name) {
+	if (['value', 'checked', 'disabled', 'selected'].indexOf(name) >= 0) {
+		return typeof this[name] !== 'undefined' ? this[name] : this.attributes[name] && this.attributes[name].value;
+	} else {
+		return this.attributes[name] && this.attributes[name].value || '';
+	}
+};
 HTMLElement.prototype.replaceChild = function(newChild, toReplace) {
 	let idx = this.childNodes.indexOf(toReplace);
 	this.childNodes.splice(idx, 1, newChild);
 	newChild.parentNode = this;
 };
-HTMLElement.prototype.addEventListener = function() {};
-HTMLElement.prototype.removeEventListener = function() {};
+HTMLElement.prototype.addEventListener = function(name, fn) {
+	this._eventListeners[name] = this._eventListeners[name] || [];
+	this._eventListeners[name].push(fn);
+};
+HTMLElement.prototype.dispatchEvent = function (event) {
+	// if we have event listeners registered for the event
+	if (this._eventListeners[event.name]) {
+		// call them all
+		for (let listener, index = 0, len = this._eventListeners[event.name].length; listener = this._eventListeners[event.name][index], index < len; index += 1) {
+			let result = listener.call(this, event);
+			if (result === false) {
+				return;
+			}
+		}
+	}
+	// allow the event to bubble up
+	if (this.parentNode) this.parentNode.dispatchEvent(event);
+};
+HTMLElement.prototype.removeEventListener = function(name, fn) {
+	if (!fn) {
+		delete this._eventListeners[name];
+	} else if (this._eventListeners[name]) {
+		this._eventListeners[name].splice(this._eventListeners[name].indexOf(fn), 1);
+	}
+};
+HTMLElement.prototype.click = function() {
+	this.dispatchEvent({name: 'click', target: this});
+};
+HTMLElement.prototype.focus = function() {
+	this.dispatchEvent({name: 'focus', target: this});
+};
+HTMLElement.prototype.blur = function() {
+	this.dispatchEvent({name: 'blur', target: this});
+};
 HTMLElement.prototype.getElementsByTagName = function(tagName) {
 	return findElements(this, el => ((tagName === '*' && el.tagName) || el.tagName === tagName));
 };
@@ -318,6 +363,9 @@ HTMLElement.prototype.getElementsByClassName = function(className) {
 };
 HTMLElement.prototype.querySelectorAll = function(selector) {
 	return findElements(this, el => matchesSelector(el, selector));
+};
+HTMLElement.prototype.querySelector = function(selector) {
+	return this.querySelectorAll(selector)[0];
 };
 HTMLElement.prototype.getElementById = function(id) {
 	return findElements(this, el => el.getAttribute('id') === id)[0];
@@ -341,6 +389,7 @@ export default function Document(html) {
 	this.getElementsByTagName = HTMLElement.prototype.getElementsByTagName.bind(this);
 	this.getElementsByClassName = HTMLElement.prototype.getElementsByClassName.bind(this);
 	this.querySelectorAll = HTMLElement.prototype.querySelectorAll.bind(this);
+	this.querySelector = HTMLElement.prototype.querySelector.bind(this);
 	this.addEventListener = () => {};
 	this.removeEventListener = () => {};
 

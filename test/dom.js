@@ -145,3 +145,23 @@ test('can deal with attribute values that contain a > character', t => {
 	t.is(document.body.innerHTML, html, 'innerHTML is the same as input');
 	t.is(document.querySelectorAll('[items]').length, 1);
 });
+
+test('can simulate events', t => {
+	let triggered = false;
+	let document = new Document('<div></div>');
+	document.body.addEventListener('click', function (event) {
+		triggered = true;
+	});
+	document.body.click();
+	t.is(triggered, true, 'event was triggered');
+
+	document.documentElement.addEventListener('click', function (event) {
+		triggered = false;
+	});
+	document.body.click();
+	t.is(triggered, false, 'event bubbles up');
+
+	document.documentElement.removeEventListener('click');
+	document.body.click();
+	t.is(triggered, true, 'event removal works');
+});

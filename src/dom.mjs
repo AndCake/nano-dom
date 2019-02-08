@@ -335,7 +335,7 @@ HTMLElement.prototype.dispatchEvent = function (event) {
 		// call them all
 		for (let listener, index = 0, len = this._eventListeners[event.name].length; listener = this._eventListeners[event.name][index], index < len; index += 1) {
 			let result = listener.call(this, event);
-			if (!result) {
+			if (result === false) {
 				return;
 			}
 		}
