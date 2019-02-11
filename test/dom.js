@@ -164,4 +164,40 @@ test('can simulate events', t => {
 	document.documentElement.removeEventListener('click');
 	document.body.click();
 	t.is(triggered, true, 'event removal works');
+
+	document.body.removeEventListener('click');
+	triggered = false;
+	document.body.addEventListener('click', function (event) {
+		event.preventDefault();
+		triggered = 1;
+	});
+
+	document.body.addEventListener('click', function (event) {
+		triggered = 2;
+	});
+
+	document.documentElement.addEventListener('click', function (event) {
+		triggered = 3;
+	});
+
+	document.body.click();
+	t.is(triggered, 1, 'preventDefault can be executed on the event and cancels the event');
+	document.body.removeEventListener('click');
+	document.documentElement.removeEventListener('click');
+
+	triggered = false;
+	document.body.addEventListener('click', function (event) {
+		event.stopPropagation();
+		triggered = 1;
+	});
+
+	document.body.addEventListener('click', function (event) {
+		triggered = 2;
+	});
+
+	document.documentElement.addEventListener('click', function (event) {
+		triggered = 3;
+	});
+	document.body.click();
+	t.is(triggered, 2, 'stopPropagation cancels bubbling');
 });

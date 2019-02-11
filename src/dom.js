@@ -326,18 +326,22 @@ HTMLElement.prototype.addEventListener = function(name, fn) {
 	this._eventListeners[name].push(fn);
 };
 HTMLElement.prototype.dispatchEvent = function (event) {
+	const sendEvent = Object.assign({}, event, {
+		stopPropagation() { this.bubbles = false; },
+		preventDefault() { this.cancelled = true; },
+	});
 	// if we have event listeners registered for the event
-	if (this._eventListeners[event.name]) {
+	if (this._eventListeners[event.type]) {
 		// call them all
-		for (let listener, index = 0, len = this._eventListeners[event.name].length; listener = this._eventListeners[event.name][index], index < len; index += 1) {
-			let result = listener.call(this, event);
-			if (result === false) {
+		for (let listener, index = 0, len = this._eventListeners[event.type].length; listener = this._eventListeners[event.type][index], index < len; index += 1) {
+			let result = listener.call(this, sendEvent);
+			if (result === false || sendEvent.cancelled) {
 				return;
 			}
 		}
 	}
 	// allow the event to bubble up
-	if (this.parentNode) this.parentNode.dispatchEvent(event);
+	if (sendEvent.bubbles && this.parentNode) this.parentNode.dispatchEvent(sendEvent);
 };
 HTMLElement.prototype.removeEventListener = function(name, fn) {
 	if (!fn) {
@@ -347,13 +351,13 @@ HTMLElement.prototype.removeEventListener = function(name, fn) {
 	}
 };
 HTMLElement.prototype.click = function() {
-	this.dispatchEvent({name: 'click', target: this});
+	this.dispatchEvent({type: 'click', target: this, bubbles: true});
 };
 HTMLElement.prototype.focus = function() {
-	this.dispatchEvent({name: 'focus', target: this});
+	this.dispatchEvent({type: 'focus', target: this, bubbles: true});
 };
 HTMLElement.prototype.blur = function() {
-	this.dispatchEvent({name: 'blur', target: this});
+	this.dispatchEvent({type: 'blur', target: this, bubbles: true});
 };
 HTMLElement.prototype.getElementsByTagName = function(tagName) {
 	return findElements(this, el => ((tagName === '*' && el.tagName) || el.tagName === tagName));
