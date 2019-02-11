@@ -12,7 +12,7 @@ $ npm i nano-dom -D
 Usage
 -----
 
-```
+```js
 import Document from 'nano-dom';
 
 const document = new Document('<div class="greeting">Hello world!</div>');
@@ -25,7 +25,7 @@ Support for custom tags
 
 You can configure which custom tags are allowed to be self-closing ones. If not configured, you may have to close them explicitly.
 
-```
+```js
 import { options }, Document from 'nano-dom';
 
 options.customSelfClosingTags = ['chicken', 'run'];
