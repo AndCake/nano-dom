@@ -372,6 +372,9 @@ HTMLElement.prototype.getElementsByClassName = function(className) {
 HTMLElement.prototype.querySelectorAll = function(selector) {
 	return findElements(this, el => matchesSelector(el, selector));
 };
+HTMLElement.prototype.matches = function(selector) {
+	return matchesSelector(this, selector);	
+};
 HTMLElement.prototype.querySelector = function(selector) {
 	return this.querySelectorAll(selector)[0];
 };
